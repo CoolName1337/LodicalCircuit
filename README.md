@@ -1,7 +1,7 @@
 # LogicalCircuit
 Been doing this for a whole week...
 
-Right button for context menu(for rename node in Create mode)
+Right button for context menu(for rename node in Create mode)\n
 Left-cntrl for select more elements
 Can zoom and move field.
 Can create new element,
