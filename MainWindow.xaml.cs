@@ -302,7 +302,7 @@ namespace LogicalCircuit
         {
             if (value != this.value)
             {
-                if (m_recursionCount > 2)
+                if (m_recursionCount > 10)
                 {
                     MessageBox.Show("Exception(((... delete maybe bad wire");
                     m_recursionCount = 0; 
@@ -318,8 +318,8 @@ namespace LogicalCircuit
                 Inputs.ForEach(input => input.SetValue());
                 AllChangeValues?.Invoke();
                 AllChangeValues = null;
-                m_recursionCount = 0;
             }
+            m_recursionCount = 0;
         }
         public override void Connect(Node node)
         {
@@ -1017,16 +1017,16 @@ namespace LogicalCircuit
                 if (!(temp is Node) && !(e.Source is TextBox) && e.RightButton == MouseButtonState.Released)
                 {
                     MoreAction.Visibility = Visibility.Visible;
-                    Canvas.SetLeft(MoreAction, e.GetPosition(Field).X);
-                    Canvas.SetTop(MoreAction, e.GetPosition(Field).Y);
+                    Canvas.SetLeft(MoreAction, e.GetPosition(MoreActionField).X);
+                    Canvas.SetTop(MoreAction, e.GetPosition(MoreActionField).Y);
                 }
 
                 if (m_isWantToCreateNewElement && temp is Node node && m_takedNodesToNewElements.Contains(node))
                 {
                     takedNodeForRename = node;
                     CanvasSetNameAndSymbolForNode.Visibility = Visibility.Visible;
-                    Canvas.SetLeft(CanvasSetNameAndSymbolForNode, e.GetPosition(Field).X);
-                    Canvas.SetTop(CanvasSetNameAndSymbolForNode, e.GetPosition(Field).Y);
+                    Canvas.SetLeft(CanvasSetNameAndSymbolForNode, e.GetPosition(MoreActionField).X);
+                    Canvas.SetTop(CanvasSetNameAndSymbolForNode, e.GetPosition(MoreActionField).Y);
                 }
             }
 

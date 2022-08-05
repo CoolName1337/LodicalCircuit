@@ -88,7 +88,7 @@
             </StackPanel>
         </ScrollViewer>
 
-        <Canvas Grid.Row="1" x:Name="Field">
+        <Canvas x:Name="MoreActionField">
             <Canvas Panel.ZIndex="10" x:Name="MoreAction" Visibility="Hidden">
                 <StackPanel HorizontalAlignment="Center" ButtonBase.Click="Button_MoreActionClick" VerticalAlignment="Center">
                     <Button Content="Remove"></Button>
@@ -125,13 +125,16 @@
                     <Button Content="Set" Click="Button_SetParamsForNode"></Button>
                 </StackPanel>
             </Canvas>
+            <Canvas Grid.Row="1" x:Name="Field">
 
-            <Canvas x:Name="handledField">
-                <!--Тута спавнятся все элементы-->
+                <Canvas x:Name="handledField">
+                    <!--Тута спавнятся все элементы-->
+
+                </Canvas>
 
             </Canvas>
-
         </Canvas>
+        
         
         <Grid Panel.ZIndex="9" Grid.Row="1" x:Name="NewElementPanel" Visibility="Hidden">
             <TextBlock x:Name="textInfo" Text="Select elements and nodes" VerticalAlignment="Top" FontSize="25" HorizontalAlignment="Center"></TextBlock>
