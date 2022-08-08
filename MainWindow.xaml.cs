@@ -308,6 +308,7 @@ namespace LogicalCircuit
                 m_recursionCount++;
                 this.value = value;
                 Sprite.Fill = value == NodeValue.High ? Red : Gray;
+                //Parallel.ForEach(Inputs, input => input.SetValue());
                 Inputs.ForEach(input => input.SetValue());
                 AllChangeValues?.Invoke();
                 AllChangeValues = null;
@@ -357,7 +358,7 @@ namespace LogicalCircuit
     {
         public Input[] Inputs;
         public Output[] Outputs;
-        public ElementLogic ElLogic;
+        private Action<object, ChangeInputEventArgs, Input[], Output[]> Logic;
         public readonly Label label = new Label();
         protected string name;
         private bool isFlipX = false;
@@ -410,30 +411,30 @@ namespace LogicalCircuit
             }
         }
         protected static int _largerInt(int x, int y) => x > y ? x : y;
-        public LogicalElement(ElementLogic elLogic, Point position, string text, string symbol) :
+        public LogicalElement(int InputsCount, int OutputsCount, Action<object, ChangeInputEventArgs, Input[], Output[]> logic, Point position, string text, string symbol) :
             base(position, new Rectangle()
             {
                 Width = 100,
-                Height = elLogic != null ? (elLogic.InputsCount > 3 || elLogic.OutputsCount > 3 ? _largerInt(elLogic.OutputsCount, elLogic.InputsCount) * 50 : 150) : 150,
+                Height = InputsCount > 3 || OutputsCount > 3 ? _largerInt(OutputsCount, InputsCount) * 50 : 150,
                 Fill = GhostWhite,
                 Stroke = Gray,
                 StrokeThickness = 5,
                 StrokeLineJoin = PenLineJoin.Round,
             })
         {
-            ElLogic = elLogic;
+            Logic = logic;
             label.Content = symbol;
             name = text;
             label.FontSize = 44;
             label.DataContext = this;
-            Inputs = new Input[ElLogic?.InputsCount ?? 0];
+            Inputs = new Input[InputsCount];
             for (int i = 0; i < Inputs.Length; i++)
             {
                 Inputs[i] = new Input();
                 Inputs[i].parentLE = this;
                 Inputs[i].ChangeValue += UpdateOutputValues;
             }
-            Outputs = new Output[ElLogic?.OutputsCount ?? 0];
+            Outputs = new Output[OutputsCount];
             for (int i = 0; i < Outputs.Length; i++)
             {
                 Outputs[i] = new Output();
@@ -444,7 +445,7 @@ namespace LogicalCircuit
         }
         protected void UpdateOutputValues(object sender, ChangeInputEventArgs e)
         {
-            ElLogic?.Logic(sender, e, Inputs, Outputs);
+            Logic?.Invoke(sender, e, Inputs, Outputs);
         }
         static public NodeValue NOT(NodeValue val) => val == NodeValue.High ? NodeValue.Low : NodeValue.High;
         public override void Remove()
@@ -456,7 +457,7 @@ namespace LogicalCircuit
             Field.Children.Remove(label);
             base.Remove();
         }
-        public override Render Copy() => new LogicalElement(ElLogic, Position, name, label.Content?.ToString());
+        public override Render Copy() => new LogicalElement(Inputs.Length, Outputs.Length, Logic, Position, name, label.Content?.ToString());
         public override void AddToField()
         {
             base.AddToField();
@@ -688,23 +689,11 @@ namespace LogicalCircuit
         }
 
     }
-    public class ElementLogic
-    {
-        public int InputsCount;
-        public int OutputsCount;
-        public Action<object, ChangeInputEventArgs, Input[], Output[]> Logic;
-        public ElementLogic(int inputsCount, int outputsCount, Action<object, ChangeInputEventArgs, Input[], Output[]> logic)
-        {
-            InputsCount = inputsCount;
-            OutputsCount = outputsCount;
-            Logic = logic;
-        }
-    }
 
     class LogicalGroup : LogicalElement
     {
         private LogicalElement[] m_logicalElements;
-        public LogicalGroup(LogicalElement[] logicalElements, Input[] inputs, Output[] outputs, Point position, string name, string symbol) : base(null, position, name, symbol)
+        public LogicalGroup(LogicalElement[] logicalElements, Input[] inputs, Output[] outputs, Point position, string name, string symbol) : base(0,0,null, position, name, symbol)
         {
             Sprite = new Rectangle()
             {
@@ -799,15 +788,19 @@ namespace LogicalCircuit
             ButtonSpawn.deletePanel = DeletePanel;
             ButtonSpawn.delButtonTextBlock = textBlockNameOfDletedButton;
 
-            ElementLogic repeatLogic = new ElementLogic(1, 1, (sender, e, inputs, outputs) => outputs[0].Value = inputs[0].Value);
-            ElementLogic notLogic = new ElementLogic(1, 1, (sender, e, inputs, outputs) => outputs[0].Value = LogicalElement.NOT(inputs[0].Value));
-            ElementLogic andLogic = new ElementLogic(2, 1, (sender, e, inputs, outputs) => outputs[0].Value = inputs[0].Value & inputs[1].Value);
-            ElementLogic orLogic = new ElementLogic(2, 1, (sender, e, inputs, outputs) => outputs[0].Value = inputs[0].Value | inputs[1].Value);
+            new ButtonSpawn(new LogicalElement(1, 1, 
+                (sender, e, inputs, outputs) => outputs[0].Value = inputs[0].Value, 
+                new Point(0, 0), "▷", "▷"));
+            new ButtonSpawn(new LogicalElement(1, 1, 
+                (sender, e, inputs, outputs) => outputs[0].Value = LogicalElement.NOT(inputs[0].Value), 
+                new Point(0, 0), "Not", "!"));
+            new ButtonSpawn(new LogicalElement(2, 1, 
+                (sender, e, inputs, outputs) => outputs[0].Value = inputs[0].Value & inputs[1].Value, 
+                new Point(0, 0), "And", "&"));
+            new ButtonSpawn(new LogicalElement(2, 1, 
+                (sender, e, inputs, outputs) => outputs[0].Value = inputs[0].Value | inputs[1].Value, 
+                new Point(0, 0), "Or", "|"));
 
-            new ButtonSpawn(new LogicalElement(repeatLogic, new Point(0, 0), "▷", "▷"));
-            new ButtonSpawn(new LogicalElement(notLogic, new Point(0, 0), "Not", "!"));
-            new ButtonSpawn(new LogicalElement(andLogic, new Point(0, 0), "And", "&"));
-            new ButtonSpawn(new LogicalElement(orLogic, new Point(0, 0), "Or", "|"));
             new ButtonSpawn(new ButtonNode(new Point()));
             new ButtonSpawn(new Light(new Point()));
         }
